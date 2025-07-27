@@ -131,7 +131,7 @@ export default function SupplierRegister() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <Navigation />
+      {/* <Navigation /> */}
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
@@ -142,7 +142,7 @@ export default function SupplierRegister() {
                   <Store className="h-8 w-8 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                  BazaarBuddy
+                  VendorMitra
                 </h1>
               </div>
               <CardTitle className="text-2xl">Register as Supplier</CardTitle>
