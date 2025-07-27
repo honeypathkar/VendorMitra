@@ -1,0 +1,417 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ShoppingCart, ArrowLeft, Mail, Shield } from "lucide-react"
+import Link from "next/link"
+import { useAuth } from "@/hooks/useAuth"
+import { useRouter } from "next/navigation"
+import Navigation from "@/components/navigation"
+
+export default function VendorRegister() {
+  const [step, setStep] = useState(1) // 1: Form, 2: OTP Verification
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    businessName: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    businessType: "",
+    password: "",
+    confirmPassword: "",
+  })
+  const [otp, setOtp] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [otpSent, setOtpSent] = useState(false)
+  const { signup } = useAuth()
+  const router = useRouter()
+
+  const sendOTP = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      })
+
+      const data = await response.json()
+      if (response.ok) {
+        setOtpSent(true)
+        setStep(2)
+        setError("")
+      } else {
+        setError(data.error || "Failed to send OTP")
+      }
+    } catch (err) {
+      setError("Failed to send OTP")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verifyOTP = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, otp }),
+      })
+
+      const data = await response.json()
+      if (response.ok) {
+        // OTP verified, now create account
+        await signup({
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim() || null,
+          businessName: formData.businessName.trim() || null,
+          address: formData.address.trim() || null,
+          city: formData.city.trim() || null,
+          state: formData.state || null,
+          pincode: formData.pincode.trim() || null,
+          password: formData.password,
+          role: "vendor",
+        })
+        router.push("/vendor/dashboard")
+      } else {
+        setError(data.error || "Invalid OTP")
+      }
+    } catch (err: any) {
+      setError(err.message || "Verification failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+
+    // Validation
+    if (!formData.name.trim()) {
+      setError("Name is required")
+      return
+    }
+    if (!formData.email.trim()) {
+      setError("Email is required")
+      return
+    }
+    if (!formData.password) {
+      setError("Password is required")
+      return
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long")
+      return
+    }
+
+    await sendOTP()
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50">
+      <Navigation />
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="text-center bg-gradient-to-r from-orange-50 to-yellow-50">
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <div className="p-3 bg-orange-600 rounded-2xl">
+                  <ShoppingCart className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                  BazaarBuddy
+                </h1>
+              </div>
+              <CardTitle className="text-2xl">Register as Vendor</CardTitle>
+              <CardDescription className="text-lg">
+                {step === 1 ? "Join our platform to connect with reliable suppliers" : "Verify your email address"}
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="p-8">
+              {step === 1 ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name">Full Name *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Enter your full name"
+                        required
+                        className="h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email Address *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="Enter your email"
+                        required
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+91 9876543210"
+                        className="h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="businessName">Business Name</Label>
+                      <Input
+                        id="businessName"
+                        value={formData.businessName}
+                        onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                        placeholder="Your food stall name"
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="address">Business Address</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="Enter your complete business address"
+                      className="min-h-[80px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        placeholder="City"
+                        className="h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="state">State</Label>
+                      <Select
+                        value={formData.state}
+                        onValueChange={(value) => setFormData({ ...formData, state: value })}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Select state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="andhra-pradesh">Andhra Pradesh</SelectItem>
+                          <SelectItem value="arunachal-pradesh">Arunachal Pradesh</SelectItem>
+                          <SelectItem value="assam">Assam</SelectItem>
+                          <SelectItem value="bihar">Bihar</SelectItem>
+                          <SelectItem value="chhattisgarh">Chhattisgarh</SelectItem>
+                          <SelectItem value="goa">Goa</SelectItem>
+                          <SelectItem value="gujarat">Gujarat</SelectItem>
+                          <SelectItem value="haryana">Haryana</SelectItem>
+                          <SelectItem value="himachal-pradesh">Himachal Pradesh</SelectItem>
+                          <SelectItem value="jharkhand">Jharkhand</SelectItem>
+                          <SelectItem value="karnataka">Karnataka</SelectItem>
+                          <SelectItem value="kerala">Kerala</SelectItem>
+                          <SelectItem value="madhya-pradesh">Madhya Pradesh</SelectItem>
+                          <SelectItem value="maharashtra">Maharashtra</SelectItem>
+                          <SelectItem value="manipur">Manipur</SelectItem>
+                          <SelectItem value="meghalaya">Meghalaya</SelectItem>
+                          <SelectItem value="mizoram">Mizoram</SelectItem>
+                          <SelectItem value="nagaland">Nagaland</SelectItem>
+                          <SelectItem value="odisha">Odisha</SelectItem>
+                          <SelectItem value="punjab">Punjab</SelectItem>
+                          <SelectItem value="rajasthan">Rajasthan</SelectItem>
+                          <SelectItem value="sikkim">Sikkim</SelectItem>
+                          <SelectItem value="tamil-nadu">Tamil Nadu</SelectItem>
+                          <SelectItem value="telangana">Telangana</SelectItem>
+                          <SelectItem value="tripura">Tripura</SelectItem>
+                          <SelectItem value="uttar-pradesh">Uttar Pradesh</SelectItem>
+                          <SelectItem value="uttarakhand">Uttarakhand</SelectItem>
+                          <SelectItem value="west-bengal">West Bengal</SelectItem>
+                          <SelectItem value="delhi">Delhi</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="pincode">PIN Code</Label>
+                      <Input
+                        id="pincode"
+                        value={formData.pincode}
+                        onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                        placeholder="110001"
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="businessType">Business Type</Label>
+                    <Select
+                      value={formData.businessType}
+                      onValueChange={(value) => setFormData({ ...formData, businessType: value })}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="Select business type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="street-food">Street Food Stall</SelectItem>
+                        <SelectItem value="restaurant">Small Restaurant</SelectItem>
+                        <SelectItem value="catering">Catering Service</SelectItem>
+                        <SelectItem value="tiffin">Tiffin Service</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="password">Password *</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="Create a strong password (min 6 chars)"
+                        required
+                        minLength={6}
+                        className="h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        placeholder="Confirm your password"
+                        required
+                        minLength={6}
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="text-red-600 text-sm bg-red-50 p-4 rounded-lg border border-red-200 flex items-center space-x-2">
+                      <Shield className="h-4 w-4" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-4">
+                    <Link href="/" className="flex-1">
+                      <Button type="button" variant="outline" className="w-full h-12 bg-transparent">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back
+                      </Button>
+                    </Link>
+                    <Button
+                      type="submit"
+                      className="flex-1 h-12 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                      disabled={loading}
+                    >
+                      {loading ? "Sending OTP..." : "Continue"}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="mx-auto mb-4 p-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-full w-fit">
+                      <Mail className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Check your email</h3>
+                    <p className="text-gray-600">
+                      We've sent a verification code to <strong>{formData.email}</strong>
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="otp">Enter verification code</Label>
+                    <Input
+                      id="otp"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="h-12 text-center text-lg tracking-widest"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="text-red-600 text-sm bg-red-50 p-4 rounded-lg border border-red-200 flex items-center space-x-2">
+                      <Shield className="h-4 w-4" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setStep(1)}
+                      className="flex-1 h-12 bg-transparent"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button
+                      onClick={verifyOTP}
+                      className="flex-1 h-12 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                      disabled={loading || otp.length !== 6}
+                    >
+                      {loading ? "Verifying..." : "Verify & Register"}
+                    </Button>
+                  </div>
+
+                  <div className="text-center">
+                    <Button
+                      variant="ghost"
+                      onClick={sendOTP}
+                      disabled={loading}
+                      className="text-orange-600 hover:text-orange-700"
+                    >
+                      Didn't receive code? Resend
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
