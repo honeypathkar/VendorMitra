@@ -6,6 +6,13 @@ Vendormitra is a cutting-edge web application designed to revolutionize how vend
 
 Our mission is to provide vendors with the intelligence and agility needed to thrive in a competitive market, transforming data into actionable insights and fostering a supportive community.
 
+**Admin Account**
+
+Without admin account you can't approve of accounts so its needed 
+
+* Email :- patwaji.devx@gmail.com
+* Password :- VendorMitra@2025
+
 ## **Key Features**
 
 Vendormitra is packed with features tailored to optimize vendor efficiency and profitability:
@@ -52,3 +59,4 @@ Vendormitra is designed with security and data privacy at its core:
 * **Database:** \[e.g., MongoDB\]  
 * **Charting Library:** \[e.g., Recharts\]  
 * **Authentication:** \[e.g., Our own Authentication system using otp\]
+
