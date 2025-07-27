@@ -19,17 +19,21 @@ export async function POST(request: NextRequest) {
       city,
       state,
       pincode,
+      businessType,
+      gstNumber,
+      operatingHours,
+      deliveryRadius,
       otp,
     } = body;
 
     // Validate required fields
     if (!email || !password || !role || !name || !otp) {
       console.log("Missing required fields:", {
-        email,
-        password,
-        role,
-        name,
-        otp,
+        email: !!email,
+        password: !!password,
+        role: !!role,
+        name: !!name,
+        otp: !!otp,
       });
       return NextResponse.json(
         { error: "Email, password, role, name, and OTP are required" },
@@ -37,8 +41,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("Verifying OTP for email:", email, "OTP:", otp);
+
     // ✅ Verify OTP first
-    const isValid = verifyOTP(email, otp);
+    const isValid = await verifyOTP(email, otp);
+    console.log("OTP verification result:", isValid);
+
     if (!isValid) {
       return NextResponse.json(
         { error: "Invalid or expired OTP" },
@@ -76,7 +84,9 @@ export async function POST(request: NextRequest) {
     const db = client.db("BazaarBuddy");
 
     // ✅ Check existing user
-    const existingUser = await db.collection("users").findOne({ email });
+    const existingUser = await db
+      .collection("users")
+      .findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       return NextResponse.json(
         { error: "User already exists with this email" },
@@ -103,8 +113,14 @@ export async function POST(request: NextRequest) {
         city: city ? city.trim() : null,
         state: state ? state.trim() : null,
         pincode: pincode ? pincode.trim() : null,
+        businessType: businessType ? businessType.trim() : null,
+        gstNumber: gstNumber ? gstNumber.trim() : null,
+        operatingHours: operatingHours ? operatingHours.trim() : null,
+        deliveryRadius: deliveryRadius ? Number.parseInt(deliveryRadius) : null,
       },
     };
+
+    console.log("Creating user:", { ...newUser, password: "[HIDDEN]" });
 
     const result = await db.collection("users").insertOne(newUser);
 
@@ -112,8 +128,9 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to create user");
     }
 
-    const token = generateToken(result.insertedId.toString());
+    console.log("User created successfully with ID:", result.insertedId);
 
+    const token = generateToken(result.insertedId.toString());
     const { password: _, ...userWithoutPassword } = newUser;
 
     return NextResponse.json({

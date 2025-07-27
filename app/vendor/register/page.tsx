@@ -25,7 +25,6 @@ import { ShoppingCart, ArrowLeft, Mail, Shield } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import Navigation from "@/components/navigation";
 
 export default function VendorRegister() {
   const [step, setStep] = useState(1); // 1: Form, 2: OTP Verification
@@ -46,7 +45,8 @@ export default function VendorRegister() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const { signup } = useAuth();
+
+  const { login } = useAuth();
   const router = useRouter();
 
   const sendOTP = async () => {
@@ -57,7 +57,6 @@ export default function VendorRegister() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
       });
-
       const data = await response.json();
       if (response.ok) {
         setOtpSent(true);
@@ -76,16 +75,10 @@ export default function VendorRegister() {
   const verifyOTP = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/auth/verify-otp", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, otp }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        // OTP verified, now create account
-        await signup({
+        body: JSON.stringify({
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim() || null,
@@ -96,8 +89,15 @@ export default function VendorRegister() {
           pincode: formData.pincode.trim() || null,
           password: formData.password,
           role: "vendor",
-        });
-        router.push("/vendor/dashboard");
+          businessType: formData.businessType || null,
+          otp,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // Auto-login after successful registration
+        login(data.user.email, formData.password);
+        router.push("/");
       } else {
         setError(data.error || "Invalid OTP");
       }
@@ -140,7 +140,6 @@ export default function VendorRegister() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50">
       {/* <Navigation /> */}
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
@@ -160,7 +159,6 @@ export default function VendorRegister() {
                   : "Verify your email address"}
               </CardDescription>
             </CardHeader>
-
             <CardContent className="p-8">
               {step === 1 ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -193,7 +191,6 @@ export default function VendorRegister() {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
@@ -223,7 +220,6 @@ export default function VendorRegister() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <Label htmlFor="address">Business Address</Label>
                     <Textarea
@@ -236,7 +232,6 @@ export default function VendorRegister() {
                       className="min-h-[80px]"
                     />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="city">City</Label>
@@ -325,7 +320,6 @@ export default function VendorRegister() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <Label htmlFor="businessType">Business Type</Label>
                     <Select
@@ -352,7 +346,6 @@ export default function VendorRegister() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="password">Password *</Label>
@@ -390,14 +383,12 @@ export default function VendorRegister() {
                       />
                     </div>
                   </div>
-
                   {error && (
                     <div className="text-red-600 text-sm bg-red-50 p-4 rounded-lg border border-red-200 flex items-center space-x-2">
                       <Shield className="h-4 w-4" />
                       <span>{error}</span>
                     </div>
                   )}
-
                   <div className="flex space-x-4">
                     <Link href="/" className="flex-1">
                       <Button
@@ -432,7 +423,6 @@ export default function VendorRegister() {
                       <strong>{formData.email}</strong>
                     </p>
                   </div>
-
                   <div>
                     <Label htmlFor="otp">Enter verification code</Label>
                     <Input
@@ -444,14 +434,12 @@ export default function VendorRegister() {
                       className="h-12 text-center text-lg tracking-widest"
                     />
                   </div>
-
                   {error && (
                     <div className="text-red-600 text-sm bg-red-50 p-4 rounded-lg border border-red-200 flex items-center space-x-2">
                       <Shield className="h-4 w-4" />
                       <span>{error}</span>
                     </div>
                   )}
-
                   <div className="flex space-x-4">
                     <Button
                       type="button"
@@ -470,7 +458,6 @@ export default function VendorRegister() {
                       {loading ? "Verifying..." : "Verify & Register"}
                     </Button>
                   </div>
-
                   <div className="text-center">
                     <Button
                       variant="ghost"

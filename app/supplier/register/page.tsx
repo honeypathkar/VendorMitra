@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,6 @@ import { Store, ArrowLeft, Mail, Shield } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import Navigation from "@/components/navigation";
 
 export default function SupplierRegister() {
   const [step, setStep] = useState(1); // 1: Form, 2: OTP Verification
@@ -49,7 +47,8 @@ export default function SupplierRegister() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const { signup } = useAuth();
+
+  const { login } = useAuth();
   const router = useRouter();
 
   const sendOTP = async () => {
@@ -61,6 +60,12 @@ export default function SupplierRegister() {
         body: JSON.stringify({ email: formData.email }),
       });
       const data = await response.json();
+
+      // In development, log the OTP for testing
+      if (process.env.NODE_ENV === "development" && data.otp) {
+        console.log("🔐 OTP for testing:", data.otp);
+      }
+
       if (response.ok) {
         setOtpSent(true);
         setStep(2);
@@ -82,25 +87,27 @@ export default function SupplierRegister() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.contactPerson,
-          email: formData.email,
-          phone: formData.phone,
-          businessName: formData.businessName,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
+          name: formData.contactPerson.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim() || null,
+          businessName: formData.businessName.trim(),
+          address: formData.address.trim() || null,
+          city: formData.city.trim() || null,
+          state: formData.state || null,
+          pincode: formData.pincode.trim() || null,
           password: formData.password,
           role: "supplier",
-          businessType: formData.businessType,
-          gstNumber: formData.gstNumber,
-          operatingHours: formData.operatingHours,
-          deliveryRadius: formData.deliveryRadius,
+          businessType: formData.businessType || null,
+          gstNumber: formData.gstNumber.trim() || null,
+          operatingHours: formData.operatingHours.trim() || null,
+          deliveryRadius: formData.deliveryRadius || null,
           otp,
         }),
       });
       const data = await response.json();
       if (response.ok) {
+        // Auto-login after successful registration
+        await login(data.user.email, formData.password);
         router.push("/supplier/dashboard");
       } else {
         setError(data.error || "Invalid OTP");
@@ -116,11 +123,27 @@ export default function SupplierRegister() {
     e.preventDefault();
     setError("");
 
+    // Validation
+    if (!formData.businessName.trim()) {
+      setError("Business name is required");
+      return;
+    }
+    if (!formData.contactPerson.trim()) {
+      setError("Contact person is required");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError("Email is required");
+      return;
+    }
+    if (!formData.password) {
+      setError("Password is required");
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters long");
       return;
@@ -131,8 +154,6 @@ export default function SupplierRegister() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      {/* <Navigation /> */}
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
@@ -152,7 +173,6 @@ export default function SupplierRegister() {
                   : "Verify your email address"}
               </CardDescription>
             </CardHeader>
-
             <CardContent className="p-8">
               {step === 1 ? (
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -190,7 +210,6 @@ export default function SupplierRegister() {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="email">Email Address *</Label>
@@ -219,7 +238,6 @@ export default function SupplierRegister() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <Label htmlFor="address">Business Address</Label>
                     <Textarea
@@ -232,7 +250,6 @@ export default function SupplierRegister() {
                       className="min-h-[80px]"
                     />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="city">City</Label>
@@ -258,18 +275,53 @@ export default function SupplierRegister() {
                           <SelectValue placeholder="Select state" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="delhi">Delhi</SelectItem>
-                          <SelectItem value="mumbai">Mumbai</SelectItem>
-                          <SelectItem value="bangalore">Bangalore</SelectItem>
-                          <SelectItem value="kolkata">Kolkata</SelectItem>
-                          <SelectItem value="chennai">Chennai</SelectItem>
-                          <SelectItem value="punjab">Punjab</SelectItem>
+                          <SelectItem value="andhra-pradesh">
+                            Andhra Pradesh
+                          </SelectItem>
+                          <SelectItem value="arunachal-pradesh">
+                            Arunachal Pradesh
+                          </SelectItem>
+                          <SelectItem value="assam">Assam</SelectItem>
+                          <SelectItem value="bihar">Bihar</SelectItem>
+                          <SelectItem value="chhattisgarh">
+                            Chhattisgarh
+                          </SelectItem>
+                          <SelectItem value="goa">Goa</SelectItem>
+                          <SelectItem value="gujarat">Gujarat</SelectItem>
                           <SelectItem value="haryana">Haryana</SelectItem>
+                          <SelectItem value="himachal-pradesh">
+                            Himachal Pradesh
+                          </SelectItem>
+                          <SelectItem value="jharkhand">Jharkhand</SelectItem>
+                          <SelectItem value="karnataka">Karnataka</SelectItem>
+                          <SelectItem value="kerala">Kerala</SelectItem>
+                          <SelectItem value="madhya-pradesh">
+                            Madhya Pradesh
+                          </SelectItem>
+                          <SelectItem value="maharashtra">
+                            Maharashtra
+                          </SelectItem>
+                          <SelectItem value="manipur">Manipur</SelectItem>
+                          <SelectItem value="meghalaya">Meghalaya</SelectItem>
+                          <SelectItem value="mizoram">Mizoram</SelectItem>
+                          <SelectItem value="nagaland">Nagaland</SelectItem>
+                          <SelectItem value="odisha">Odisha</SelectItem>
+                          <SelectItem value="punjab">Punjab</SelectItem>
+                          <SelectItem value="rajasthan">Rajasthan</SelectItem>
+                          <SelectItem value="sikkim">Sikkim</SelectItem>
+                          <SelectItem value="tamil-nadu">Tamil Nadu</SelectItem>
+                          <SelectItem value="telangana">Telangana</SelectItem>
+                          <SelectItem value="tripura">Tripura</SelectItem>
                           <SelectItem value="uttar-pradesh">
                             Uttar Pradesh
                           </SelectItem>
-                          <SelectItem value="rajasthan">Rajasthan</SelectItem>
-                          <SelectItem value="gujarat">Gujarat</SelectItem>
+                          <SelectItem value="uttarakhand">
+                            Uttarakhand
+                          </SelectItem>
+                          <SelectItem value="west-bengal">
+                            West Bengal
+                          </SelectItem>
+                          <SelectItem value="delhi">Delhi</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -286,7 +338,6 @@ export default function SupplierRegister() {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="businessType">Business Type</Label>
@@ -330,7 +381,6 @@ export default function SupplierRegister() {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="operatingHours">Operating Hours</Label>
@@ -366,7 +416,6 @@ export default function SupplierRegister() {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="password">Password *</Label>
@@ -404,14 +453,12 @@ export default function SupplierRegister() {
                       />
                     </div>
                   </div>
-
                   {error && (
                     <div className="text-red-600 text-sm bg-red-50 p-4 rounded-lg border border-red-200 flex items-center space-x-2">
                       <Shield className="h-4 w-4" />
                       <span>{error}</span>
                     </div>
                   )}
-
                   <div className="flex space-x-4">
                     <Link href="/" className="flex-1">
                       <Button
@@ -446,7 +493,6 @@ export default function SupplierRegister() {
                       <strong>{formData.email}</strong>
                     </p>
                   </div>
-
                   <div>
                     <Label htmlFor="otp">Enter verification code</Label>
                     <Input
@@ -458,14 +504,12 @@ export default function SupplierRegister() {
                       className="h-12 text-center text-lg tracking-widest"
                     />
                   </div>
-
                   {error && (
                     <div className="text-red-600 text-sm bg-red-50 p-4 rounded-lg border border-red-200 flex items-center space-x-2">
                       <Shield className="h-4 w-4" />
                       <span>{error}</span>
                     </div>
                   )}
-
                   <div className="flex space-x-4">
                     <Button
                       type="button"
@@ -484,7 +528,6 @@ export default function SupplierRegister() {
                       {loading ? "Verifying..." : "Verify & Register"}
                     </Button>
                   </div>
-
                   <div className="text-center">
                     <Button
                       variant="ghost"
