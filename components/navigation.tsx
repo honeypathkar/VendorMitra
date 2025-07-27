@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, X, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import Image from "next/image";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +39,7 @@ export default function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0 flex items-center">
+              <Image src="/favicon.ico" width={100} height={100} alt="icon" />
               <span className="text-2xl font-bold text-green-600">
                 VendorMitra
               </span>

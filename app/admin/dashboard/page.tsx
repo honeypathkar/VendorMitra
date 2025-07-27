@@ -353,7 +353,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-white/50 backdrop-blur-sm">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-white"
@@ -369,12 +369,12 @@ export default function AdminDashboard() {
             >
               Orders
             </TabsTrigger>
-            <TabsTrigger
+            {/* <TabsTrigger
               value="content"
               className="data-[state=active]:bg-white"
             >
               Content
-            </TabsTrigger>
+            </TabsTrigger> */}
             <TabsTrigger
               value="analytics"
               className="data-[state=active]:bg-white"
@@ -388,7 +388,6 @@ export default function AdminDashboard() {
               Settings
             </TabsTrigger>
           </TabsList>
-
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics */}
@@ -476,7 +475,7 @@ export default function AdminDashboard() {
               </Card>
             </div>
 
-            {/* Charts Section */}
+            {/* Charts Section
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
@@ -586,7 +585,6 @@ export default function AdminDashboard() {
               </Card>
             </div>
 
-            {/* System Status & Quick Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card className="shadow-xl border-0 bg-gradient-to-br from-green-50 to-blue-50">
                 <CardHeader>
@@ -684,7 +682,7 @@ export default function AdminDashboard() {
                   )}
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
 
             {/* Recent Activity */}
             <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -766,7 +764,6 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
             <Tabs defaultValue="vendors" className="space-y-4">
@@ -977,7 +974,6 @@ export default function AdminDashboard() {
               </TabsContent>
             </Tabs>
           </TabsContent>
-
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -1070,8 +1066,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Content Tab */}
+          {/* Content Tab
           <TabsContent value="content" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
@@ -1164,8 +1159,7 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
+          </TabsContent> */}
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1262,7 +1256,6 @@ export default function AdminDashboard() {
               </Card>
             </div>
           </TabsContent>
-
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

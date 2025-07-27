@@ -309,7 +309,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-600 to-red-600 text-white">
+      {/* <section className="py-20 bg-gradient-to-r from-orange-600 to-red-600 text-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div>
@@ -330,12 +330,11 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-6">
                 <div className="p-2 bg-orange-600 rounded-lg">
@@ -399,13 +398,12 @@ export default function HomePage() {
                 </li>
               </ul>
             </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>
-              &copy; 2024 VendorMitra. All rights reserved. Made with ❤️ for the
-              street food community.
-            </p>
-          </div>
+          </div> */}
+        <div className=" text-center text-gray-400">
+          <p>
+            &copy; 2025 VendorMitra. All rights reserved. Made with ❤️ for the
+            street food community.
+          </p>
         </div>
       </footer>
     </div>
